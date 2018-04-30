@@ -262,6 +262,8 @@ colormap(gray)
 caxis([0 1])
 xlabel('Predicted Class')
 ylabel('True Class')
+xticklabels({'spsw', 'gped', 'pled', 'eyem', 'artf', 'bckg'});
+yticklabels({'spsw', 'gped', 'pled', 'eyem', 'artf', 'bckg'});
 
 acc = numCorrect / length(fullData);
 display('The classification accuracy is: ')
