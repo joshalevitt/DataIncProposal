@@ -14,93 +14,104 @@ while folderNum <= length(list)
     fold = list(folderNum, :)
     cd(fold)
     subList = ls();
+    edfName = {};
+    recName = {};
     j = 1;
     %find the edf, txt and rec file from each folder
     while j <= length(subList)
         if ~isempty(strfind(subList(j,:),'.edf'))
-            edfName = subList(j, :);
+            edfName = [edfName, {subList(j, :)}];
         elseif ~isempty(strfind(subList(j,:),'.rec'))
-            recName = subList(j, :);
+            recName = [recName, {subList(j, :)}];
         elseif ~isempty(strfind(subList(j,:),'.txt'))
             txtName = subList(j, :);
         end           
         j = j + 1;
     end
     %open our files
-    [~, data] = edfread(edfName);
-    f = fopen(recName);
-    text = textscan(f, '%s');
-    fclose(f);
-    f = fopen(txtName);
     report = fileread(txtName);
     fullText = strcat(fullText, report);
-    txtData = text{1};
-    numEvents = length(txtData);
-    eventData = zeros(numEvents, 4);
-    i = 1;
-    %parse event data
-    while i <= numEvents
-        eventSpecs = strsplit(txtData{i}, ',');
-        eventData(i,1) = str2double(eventSpecs{1});
-        eventData(i,2) = str2double(eventSpecs{2});
-        eventData(i,3) = str2double(eventSpecs{3});
-        eventData(i,4) = str2double(eventSpecs{4});
-        i = i+1;
+    
+    if length(edfName) ~= length(recName)
+        display('unequal number of rec and edf filed in this folder')
     end
-
-    channel = eventData(1,1) + 1;
-    event = 1;
+    fileNum = 1;
+    while fileNum <= length(edfName)
     
-    eventLabels = zeros(numEvents, 1);
-    eventFeatures = zeros( numEvents, 129);
-    
-    %match each event with the corresponding EEG, and calculate power
-    %spectrum
+        [~, data] = edfread(edfName{fileNum});
+        f = fopen(recName{fileNum});
+        text = textscan(f, '%s');
+        fclose(f);
 
-    while event <= numEvents
-
-
-        %remove leading and trailing zeros
-        signal=transpose(data(channel,:));
-        signal=signal(1:find(signal,1,'last'));
-        signal=signal(find(signal,1,'first'):length(signal));
-
-        %normalize EEG amplitude, by subtracting mean and dividing by standard
-        %deviation after ignoring outliers
-        sor=sort(signal(1:length(signal)));
-        a=round(.2*length(sor));
-        sor=sor(a:(length(sor)-a));
-        ma=mean(sor);
-        sta=std(sor);
-        signal=(signal-ma)/sta;
-
-        % loop through all event for this channel
-        while  event <= numEvents && eventData(event,1) + 1 == channel
-            startTime = eventData(event, 2);
-            i = round(startTime * fs + 1);
-            sigEvent = signal(i : i + fs - 1);
-            
-            %calculate PSD
-            psdEvent = periodogram(sigEvent, [], [], fs);
-            
-            eventLabels(event) = eventData(event, 4);
-            eventFeatures(event, :) = psdEvent;
-           
-            event = event + 1;
+        txtData = text{1};
+        numEvents = length(txtData);
+        eventData = zeros(numEvents, 4);
+        i = 1;
+        %parse event data
+        while i <= numEvents
+            eventSpecs = strsplit(txtData{i}, ',');
+            eventData(i,1) = str2double(eventSpecs{1});
+            eventData(i,2) = str2double(eventSpecs{2});
+            eventData(i,3) = str2double(eventSpecs{3});
+            eventData(i,4) = str2double(eventSpecs{4});
+            i = i+1;
         end
 
-        if event <= numEvents
-            channel = eventData(event,1) + 1;
+        channel = eventData(1,1) + 1;
+        event = 1;
+
+        eventLabels = zeros(numEvents, 1);
+        eventFeatures = zeros( numEvents, 129);
+
+        %match each event with the corresponding EEG, and calculate power
+        %spectrum
+
+        while event <= numEvents
+
+
+            %remove leading and trailing zeros
+            signal=transpose(data(channel,:));
+            signal=signal(1:find(signal,1,'last'));
+            signal=signal(find(signal,1,'first'):length(signal));
+
+            %normalize EEG amplitude, by subtracting mean and dividing by standard
+            %deviation after ignoring outliers
+            sor=sort(signal(1:length(signal)));
+            a=round(.2*length(sor));
+            sor=sor(a:(length(sor)-a));
+            ma=mean(sor);
+            sta=std(sor);
+            signal=(signal-ma)/sta;
+
+            % loop through all event for this channel
+            while  event <= numEvents && eventData(event,1) + 1 == channel
+                startTime = eventData(event, 2);
+                i = round(startTime * fs + 1);
+                sigEvent = signal(i : i + fs - 1);
+
+                %calculate PSD
+                psdEvent = periodogram(sigEvent, [], [], fs);
+
+                eventLabels(event) = eventData(event, 4);
+                eventFeatures(event, :) = psdEvent;
+
+                event = event + 1;
+            end
+
+            if event <= numEvents
+                channel = eventData(event,1) + 1;
+            end
         end
+        labels = cat(1, labels, eventLabels);
+        features = cat(1, features, eventFeatures);
+        fileNum = fileNum + 1;
     end
-    labels = cat(1, labels, eventLabels);
-    features = cat(1, features, eventFeatures);
     cd 'C:\Users\SaabLab\Desktop\TUH EEG Corpus\train'
     folderNum = folderNum + 1;
 end
 
 
-%Repeat this entire process for the other folder
+%Repeat this entire process for the eval folder
 testlabels = 0;
 testfeatures = zeros(1, 129);
 
@@ -111,78 +122,90 @@ while folderNum <= length(list)
     fold = list(folderNum, :)
     cd(fold)
     subList = ls();
+    edfName = {};
+    recName = {};
     j = 1;
     while j <= length(subList)
+        
         if ~isempty(strfind(subList(j,:),'.edf'))
-            edfName = subList(j, :);
+            edfName = [edfName, {subList(j, :)}];
         elseif ~isempty(strfind(subList(j,:),'.rec'))
-            recName = subList(j, :);
+            recName = [recName, {subList(j, :)}];
         elseif ~isempty(strfind(subList(j,:),'.txt'))
             txtName = subList(j, :);
         end           
         j = j + 1;
     end
-    [~, data] = edfread(edfName);
-    f = fopen(recName);
-    text = textscan(f, '%s');
-    fclose(f);
     report = fileread(txtName);
     fullText = strcat(fullText, report);
-    txtData = text{1};
-    numEvents = length(txtData);
-    eventData = zeros(numEvents, 4);
-    i = 1;
-    while i <= numEvents
-        eventSpecs = strsplit(txtData{i}, ',');
-        eventData(i,1) = str2double(eventSpecs{1});
-        eventData(i,2) = str2double(eventSpecs{2});
-        eventData(i,3) = str2double(eventSpecs{3});
-        eventData(i,4) = str2double(eventSpecs{4});
-        i = i+1;
+    if length(edfName) ~= length(recName)
+        display('unequal number of rec and edf filed in this folder')
     end
-
-    channel = eventData(1,1) + 1;
-    event = 1;
+    fileNum = 1;
+    while fileNum <= length(edfName)
     
-    eventLabels = zeros(numEvents, 1);
-    eventFeatures = zeros( numEvents, 129);
+        [~, data] = edfread(edfName{fileNum});
+        f = fopen(recName{fileNum});
+        text = textscan(f, '%s');
+        fclose(f);
 
-    while event <= numEvents
-
-
-        %remove leading and trailing zeros
-        signal=transpose(data(channel,:));
-        signal=signal(1:find(signal,1,'last'));
-        signal=signal(find(signal,1,'first'):length(signal));
-
-        %normalize EEG amplitude, by subtracting mean and dividing by standard
-        %deviation after ignoring outliers
-        sor=sort(signal(1:length(signal)));
-        a=round(.2*length(sor));
-        sor=sor(a:(length(sor)-a));
-        ma=mean(sor);
-        sta=std(sor);
-        signal=(signal-ma)/sta;
-
-        while  event <= numEvents && eventData(event,1) + 1 == channel
-            startTime = eventData(event, 2);
-            i = round(startTime * fs + 1);
-            sigEvent = signal(i : i + fs - 1);
-            
-            psdEvent = periodogram(sigEvent, [], [], fs);
-            
-            eventLabels(event) = eventData(event, 4);
-            eventFeatures(event, :) = psdEvent;
-           
-            event = event + 1;
+        txtData = text{1};
+        numEvents = length(txtData);
+        eventData = zeros(numEvents, 4);
+        i = 1;
+        while i <= numEvents
+            eventSpecs = strsplit(txtData{i}, ',');
+            eventData(i,1) = str2double(eventSpecs{1});
+            eventData(i,2) = str2double(eventSpecs{2});
+            eventData(i,3) = str2double(eventSpecs{3});
+            eventData(i,4) = str2double(eventSpecs{4});
+            i = i+1;
         end
 
-        if event <= numEvents
-            channel = eventData(event,1) + 1;
+        channel = eventData(1,1) + 1;
+        event = 1;
+
+        eventLabels = zeros(numEvents, 1);
+        eventFeatures = zeros( numEvents, 129);
+
+        while event <= numEvents
+
+
+            %remove leading and trailing zeros
+            signal=transpose(data(channel,:));
+            signal=signal(1:find(signal,1,'last'));
+            signal=signal(find(signal,1,'first'):length(signal));
+
+            %normalize EEG amplitude, by subtracting mean and dividing by standard
+            %deviation after ignoring outliers
+            sor=sort(signal(1:length(signal)));
+            a=round(.2*length(sor));
+            sor=sor(a:(length(sor)-a));
+            ma=mean(sor);
+            sta=std(sor);
+            signal=(signal-ma)/sta;
+
+            while  event <= numEvents && eventData(event,1) + 1 == channel
+                startTime = eventData(event, 2);
+                i = round(startTime * fs + 1);
+                sigEvent = signal(i : i + fs - 1);
+
+                psdEvent = periodogram(sigEvent, [], [], fs);
+
+                eventLabels(event) = eventData(event, 4);
+                eventFeatures(event, :) = psdEvent;
+
+                event = event + 1;
+            end
+
+            if event <= numEvents
+                channel = eventData(event,1) + 1;
+            end
         end
+        testlabels = cat(1, testlabels, eventLabels);
+        testfeatures = cat(1, testfeatures, eventFeatures);
+        fileNum = fileNum + 1;
     end
-    testlabels = cat(1, testlabels, eventLabels);
-    testfeatures = cat(1, testfeatures, eventFeatures);
     cd 'C:\Users\SaabLab\Desktop\TUH EEG Corpus\eval'
     folderNum = folderNum + 1;
 end
