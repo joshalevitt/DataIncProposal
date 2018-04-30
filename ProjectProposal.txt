@@ -1,0 +1,86 @@
+Data Incubator Project Proposal
+
+Electroencephalography is an essential medical imaging tool used to
+non-invasively examine the electrical activity of the brain. It is used
+to aid in the diagnosis and routine monitoring of a number of common
+neurological conditions, such as epilepsy and sleep disorders. Despite
+its ubiquity, our understanding of EEG and how best to interpret EEG
+recordings remains incomplete. Until recently, research designed to help
+us better understand and make better use of EEG has, by necessity,
+relied on classical statistics and relatively small sample sizes. This
+is because individual samples of EEG are difficult to acquire, complex
+to analyze, and large in size (a typical recording may be 20MB). On top
+of this, EEG has very high variance, and is characterized by numerous
+types of artifacts and noise, which means studies with small sample size
+may be inconclusive, or produce false results. These types of problems
+could be addressed with the techniques common to machine learning and
+data science. There have been some concerted and notable efforts in this
+regard, for example using EEG to help predict the onset of seizures, but
+they are not yet widespread in the communtiy. Therefore, there exists an
+opportunity for collaboration between neuroscientists and data
+scientists, given that there exists a suitably robust dataset.
+
+The Temple University Hospital EEG Corpus (TUHEEGC) is the largest
+publically available EEG dataset in the world. As of 2016, it contained
+572GB of data, representing over 250,000 channel-hours of recording,
+spread over nearly 17,000 sessions, and has since grown. This includes
+data collected from subjects of all ages, with a wide variety of medical
+presentations, medications, and histories. Furthermore, the EEG is often
+accompanied by supplemental sensor data, such as electrocardiographs or
+electromyographs. Perhaps most interestingly, each recording is coupled
+with a clinician's report, which is a small .txt file containing a few
+short paragraphs describing the patient, and the clinician's findings.
+Some files also have a more detailed second-by-second notation of the
+recording. These notations allow for the possibility of using text
+analysis to identify EEG features associated with aspects of the
+subject's presentation.
+
+Given the limitations of the hardware available to me, I have only been
+to examine a portion of the dataset. In order to give an idea of the
+sorts of topics that can be addressed using this dataset, I have parsed
+the description files from a small fraction of the TUHEEGC (specifically
+the Six-Way Event Classification Corpus v1.0.0 subset, containing ~300
+recordings  and ~19GB of data) and created a word cloud (see figure 1).
+For example, we can find medication names like Keppra, suggesting that
+we could use this dataset to learn more about how drugs affect EEG
+signals. We also find key words that relate to the patient's conditions,
+like "seizures," "abnormal," "sleep," and "hyperventilation," as well as
+words that describe the EEG waveform, like "theta," "rhythmic," and
+"spike."
+
+In order to explore the possibilities of event classification using the
+dataset, I used the 6-way event labels provided in this subset of the
+TUHEEGC to train a K-Nearest-Neighbors model to classify the labeled EEG
+events into the following six categories: 'spike and slow wave',
+'generalized periodic epileptiform discharge', 'periodic lateralized
+epileptiform discharge', 'eye movement', 'artifact', and 'background.'
+This dataset contains over 110,000 pre-labeled events. For each, I
+calculated the power spectral density (PSD) of the corresponding EEG
+segment. From these PSDs, I calculated the mean amplitudes of the 5
+common EEG frequency bands (delta, theta, alpha, beta and gamma) and
+used these as the features for the KNN classifier. Using this simple
+approach, I was able to accuratley classify 59.9% of all events using
+5-fold cross validation (See confusion matrix in Figure 2). With greater
+computational power, we could test more complex approaches to this task,
+and achieve greater performance. Detecting these types of events
+automatically and accuratley would be a valuable tool both for
+researchers and clinicians.
+
+There are some obstacles to overcome in order to use this dataset. Given
+that the recordings were collected over the course of many years, there
+are differences in the specifications of each session. In particular,
+they vary in duration, channel number, and sample frequency. Any
+analysis of this data must either include only those samples with
+particular specs, or develop a way of normalizing them. It is possible
+to achieve this, with a well designed schema. You could, for example, up
+or downsample to make the sampling rate congruent, discard channels not
+present in all recordings, and use frequency-domain analytics which are
+less sensitive to recording duration. There is also no consensus on what
+features of an EEG recording are most pertinent to researchers, be it
+the time domain or frequency domain, or the more complex relationship
+between separate channels.
+
+Ultimately, this is an under-explored dataset full of possibilities to
+improve our use of an important medical diagnostic. I have already
+demonstrated the feasibility of using the TUHEEGC, but there still
+remains a great deal of work to be done.
