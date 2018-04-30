@@ -6,8 +6,10 @@ fullText = '';
 labels = 0;
 features = zeros(1, 129);
 
+CurrentDir = pwd;
+
 % traverse the folder containing the data
-cd 'C:\Users\SaabLab\Desktop\TUH EEG Corpus\train'
+cd(strcat(CurrentDir, '\train'))
 list = ls();
 folderNum = 3;
 while folderNum <= length(list)
@@ -106,7 +108,7 @@ while folderNum <= length(list)
         features = cat(1, features, eventFeatures);
         fileNum = fileNum + 1;
     end
-    cd 'C:\Users\SaabLab\Desktop\TUH EEG Corpus\train'
+    cd(strcat(CurrentDir, '\train'))
     folderNum = folderNum + 1;
 end
 
@@ -115,7 +117,7 @@ end
 testlabels = 0;
 testfeatures = zeros(1, 129);
 
-cd 'C:\Users\SaabLab\Desktop\TUH EEG Corpus\eval'
+cd(strcat(CurrentDir, '\eval'))
 list = ls();
 folderNum = 3;
 while folderNum <= length(list)
@@ -206,7 +208,7 @@ while folderNum <= length(list)
         testfeatures = cat(1, testfeatures, eventFeatures);
         fileNum = fileNum + 1;
     end
-    cd 'C:\Users\SaabLab\Desktop\TUH EEG Corpus\eval'
+    cd(strcat(CurrentDir, '\eval'))
     folderNum = folderNum + 1;
 end
 
