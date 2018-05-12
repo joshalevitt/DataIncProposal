@@ -1,0 +1,13 @@
+EEG is an essential medical tool used diagnose a variety of neurological
+conditions, like epilepsy. However, our understanding of this tool
+remains limited, due to some of the challenges inherent to studying it.
+The Temple University Hospital EEG dataset provides a great opportunity
+for us to learn more, and to build useful tools for researchers and
+clinicians alike.  For example, using this data, we could build
+algorithms that could detect important EEG events, like seizures. In
+order to test the feasibility of this idea, I trained and tested a
+program using 80,000 labeled EEG events. With this approach, the
+computer was able to distinguish between seizures, artifacts, background
+noise, and other types of events. With greater work, it may be possible
+to use similar techniques to diagnose diseases or find patterns not
+obvious to doctors.
