@@ -171,7 +171,7 @@ def main(argv):
 
     EEG_Classifier.train(
         input_fn = train_input_fn,
-        steps = 200,
+        steps = 20000,
         hooks = [logging_hook]
     )
 
